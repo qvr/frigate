@@ -616,6 +616,7 @@ class CameraState:
         previous_ids = set(tracked_objects.keys())
         removed_ids = previous_ids.difference(current_ids)
         new_ids = current_ids.difference(previous_ids)
+        updated_ids = current_ids.intersection(previous_ids)
 
         for id in new_ids:
             new_obj = tracked_objects[id] = TrackedObject(
@@ -650,13 +651,14 @@ class CameraState:
 
                 updated_obj.last_updated = frame_time
 
+            # if this is an updated id and
             # if it has been more than 5 seconds since the last thumb update
             # and the last update is greater than the last publish or
             # the object has changed significantly
-            if (
+            if id in updated_ids and ((
                 frame_time - updated_obj.last_published > 5
                 and updated_obj.last_updated > updated_obj.last_published
-            ) or significant_update:
+            ) or significant_update):
                 # call event handlers
                 for c in self.callbacks["update"]:
                     c(self.name, updated_obj, frame_time)
